@@ -184,8 +184,8 @@ export default class App extends Component {
 
     const updatedProducts = this.state.products.map((product, i) => {
       const id = getProductId(product)
-      if (id === productId && product.data.bid !== currentValue) {
-        product.data.bid = currentValue
+      if (id === productId && product.data.minimum !== currentValue) {
+        product.data.minimum = currentValue
         isDifferent = true
       }
       return product
@@ -264,23 +264,24 @@ export default class App extends Component {
       let productTitle
       let productBid
 
-      if (this.state.isAdmin) {
-        productTitle = (<ContentEditable
-                tagName='span'
-                editKey={id}
-                onBlur={this.updateProductTitle}
-                html={data.title}
-              />)
-         productBid = (<ContentEditable
-                tagName='span'
-                editKey={id}
-                onBlur={this.updateProductBid}
-                html={data.minimum}
-              />)
-      } else {
+      // if (this.state.isAdmin) {
+      //   productTitle = (<ContentEditable
+      //           tagName='span'
+      //           editKey={id}
+      //           onBlur={this.updateProductTitle}
+      //           html={data.title}
+      //         />)
+      //    productBid = (<ContentEditable
+      //           tagName='span'
+      //           editKey={id}
+      //           onBlur={this.updateProductBid}
+      //           html={data.minimum}
+      //           onChange={this.onChangeNumeric}
+      //         />)
+      // } else {
         productTitle = data.title
-        productBid = data.bid
-      }
+        productBid = '$' + data.minimum
+      // }
 
       return (
         <div key={i} className='product-item'>
