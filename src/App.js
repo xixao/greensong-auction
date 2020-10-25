@@ -210,18 +210,25 @@ export default class App extends Component {
         )
       }
 
-      return (
-        <div key={i} className='product-item'>
-          <label className="product">
-            <img className="product-image" src={data.image} alt={data.title} />
-            <div className='product-list-title'>
-              <ContentEditable
+      let productTitle
+      if (this.state.isAdmin) {
+        productTitle = (<ContentEditable
                 tagName='span'
                 editKey={id}
                 onBlur={this.updateProductTitle} // save on enter/blur
                 html={data.title}
                 // onChange={this.handleDataChange} // save on change
-              />
+              />)
+      } else {
+        productTitle = data.title
+      }
+
+      return (
+        <div key={i} className='product-item'>
+          <label className="product">
+            <img className="product-image" src={data.image} alt={data.title} />
+            <div className='product-list-title'>
+              {productTitle}
             </div>
           </label>
           {this.state.isAdmin && deleteButton}
