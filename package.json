@@ -21,6 +21,14 @@
   "devDependencies": {
     "netlify-cli": "^2.19.0"
   },
+  "proxy": {
+    "/.netlify/functions": {
+      "target": "http://localhost:9000",
+      "pathRewrite": {
+        "^/\\.netlify/functions": ""
+      }
+    }
+  },
   "browserslist": [
     ">0.2%",
     "not dead",

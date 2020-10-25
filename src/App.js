@@ -11,17 +11,18 @@ import './App.css'
 
 export default class App extends Component {
   state = {
-    todos: [],
-    showMenu: false
+    products: [],
+    showMenu: false,
+    isAdmin: false
   }
   componentDidMount() {
 
     /* Track a page view */
     analytics.page()
 
-    // Fetch all todos
-    api.readAll().then((todos) => {
-      if (todos.message === 'unauthorized') {
+    // Fetch all products
+    api.readAll().then((products) => {
+      if (products.message === 'unauthorized') {
         if (isLocalHost()) {
           alert('FaunaDB key is not unauthorized. Make sure you set it in terminal session where you ran `npm start`. Visit http://bit.ly/set-fauna-key for more info')
         } else {
@@ -30,157 +31,136 @@ export default class App extends Component {
         return false
       }
 
-      console.log('all todos', todos)
+      console.log('all products', products)
       this.setState({
-        todos: todos
+        products: products
       })
     })
-  }
-  saveTodo = (e) => {
-    e.preventDefault()
-    const { todos } = this.state
-    const todoValue = this.inputElement.value
 
-    if (!todoValue) {
-      alert('Please add Todo title')
-      this.inputElement.focus()
+    const urlParam = window.location.search
+    if (urlParam.substring(1) === "doAdmin") this.state.isAdmin = true
+  }
+  saveProduct = (e) => {
+    e.preventDefault()
+    const { products } = this.state
+    const productValue = this.productName.value
+    const productImage = this.productImage.value
+
+    if (!productValue) {
+      alert('Please add Product title')
+      this.productName.focus()
+      return false
+    } else if (!productImage) {
+      alert('Please add Product image')
+      this.productImage.focus()
       return false
     }
 
     // reset input to empty
-    this.inputElement.value = ''
+    this.productName.value = ''
+    this.productImage.value = ''
 
-    const todoInfo = {
-      title: todoValue,
-      completed: false,
+    const productInfo = {
+      title: productValue,
+      image: productImage,
     }
-    // Optimistically add todo to UI
-    const newTodoArray = [{
-      data: todoInfo,
+    // Optimistically add product to UI
+    const newProductArray = [{
+      data: productInfo,
       ts: new Date().getTime() * 10000
     }]
 
-    const optimisticTodoState = newTodoArray.concat(todos)
+    const optimisticProductState = newProductArray.concat(products)
 
     this.setState({
-      todos: optimisticTodoState
+      products: optimisticProductState
     })
-    // Make API request to create new todo
-    api.create(todoInfo).then((response) => {
+    // Make API request to create new product
+    api.create(productInfo).then((response) => {
       console.log(response)
       /* Track a custom event */
-      analytics.track('todoCreated', {
-        category: 'todos',
-        label: todoValue,
+      analytics.track('productCreated', {
+        category: 'products',
+        label: productValue,
+        image: productImage,
       })
       // remove temporaryValue from state and persist API response
-      const persistedState = removeOptimisticTodo(todos).concat(response)
+      const persistedState = removeOptimisticProduct(products).concat(response)
       // Set persisted value to state
       this.setState({
-        todos: persistedState
+        products: persistedState
       })
     }).catch((e) => {
       console.log('An API error occurred', e)
-      const revertedState = removeOptimisticTodo(todos)
+      const revertedState = removeOptimisticProduct(products)
       // Reset to original state
       this.setState({
-        todos: revertedState
+        products: revertedState
       })
     })
   }
-  deleteTodo = (e) => {
-    const { todos } = this.state
-    const todoId = e.target.dataset.id
+  deleteProduct = (e) => {
+    const { products } = this.state
+    const productId = e.target.dataset.id
 
-    // Optimistically remove todo from UI
-    const filteredTodos = todos.reduce((acc, current) => {
-      const currentId = getTodoId(current)
-      if (currentId === todoId) {
+    // Optimistically remove product from UI
+    const filteredProducts = products.reduce((acc, current) => {
+      const currentId = getProductId(current)
+      if (currentId === productId) {
         // save item being removed for rollback
-        acc.rollbackTodo = current
+        acc.rollbackProduct = current
         return acc
       }
-      // filter deleted todo out of the todos list
+      // filter deleted product out of the products list
       acc.optimisticState = acc.optimisticState.concat(current)
       return acc
     }, {
-      rollbackTodo: {},
+      rollbackProduct: {},
       optimisticState: []
     })
 
     this.setState({
-      todos: filteredTodos.optimisticState
+      products: filteredProducts.optimisticState
     })
 
-    // Make API request to delete todo
-    api.delete(todoId).then(() => {
-      console.log(`deleted todo id ${todoId}`)
-      analytics.track('todoDeleted', {
-        category: 'todos',
+    // Make API request to delete product
+    api.delete(productId).then(() => {
+      console.log(`deleted product id ${productId}`)
+      analytics.track('productDeleted', {
+        category: 'products',
       })
     }).catch((e) => {
-      console.log(`There was an error removing ${todoId}`, e)
+      console.log(`There was an error removing ${productId}`, e)
       // Add item removed back to list
       this.setState({
-        todos: filteredTodos.optimisticState.concat(filteredTodos.rollbackTodo)
+        products: filteredProducts.optimisticState.concat(filteredProducts.rollbackProduct)
       })
     })
   }
-  handleTodoCheckbox = (event) => {
-    const { todos } = this.state
-    const { target } = event
-    const todoCompleted = target.checked
-    const todoId = target.dataset.id
-
-    const updatedTodos = todos.map((todo, i) => {
-      const { data } = todo
-      const id = getTodoId(todo)
-      if (id === todoId && data.completed !== todoCompleted) {
-        data.completed = todoCompleted
-      }
-      return todo
-    })
-
-    this.setState({
-      todos: updatedTodos
-    }, () => {
-      api.update(todoId, {
-        completed: todoCompleted
-      }).then(() => {
-        console.log(`update todo ${todoId}`, todoCompleted)
-        const eventName = (todoCompleted) ? 'todoCompleted' : 'todoUnfinished'
-        analytics.track(eventName, {
-          category: 'todos'
-        })
-      }).catch((e) => {
-        console.log('An API error occurred', e)
-      })
-    })
-  }
-  updateTodoTitle = (event, currentValue) => {
+  updateProductTitle = (event, currentValue) => {
     let isDifferent = false
-    const todoId = event.target.dataset.key
+    const productId = event.target.dataset.key
 
-    const updatedTodos = this.state.todos.map((todo, i) => {
-      const id = getTodoId(todo)
-      if (id === todoId && todo.data.title !== currentValue) {
-        todo.data.title = currentValue
+    const updatedProducts = this.state.products.map((product, i) => {
+      const id = getProductId(product)
+      if (id === productId && product.data.title !== currentValue) {
+        product.data.title = currentValue
         isDifferent = true
       }
-      return todo
+      return product
     })
 
     // only set state if input different
     if (isDifferent) {
       this.setState({
-        todos: updatedTodos
+        products: updatedProducts
       }, () => {
-        api.update(todoId, {
+        api.update(productId, {
           title: currentValue
         }).then(() => {
-          console.log(`update todo ${todoId}`, currentValue)
-          analytics.track('todoUpdated', {
-            category: 'todos',
+          console.log(`update product ${productId}`, currentValue)
+          analytics.track('productUpdated', {
+            category: 'products',
             label: currentValue
           })
         }).catch((e) => {
@@ -188,48 +168,6 @@ export default class App extends Component {
         })
       })
     }
-  }
-  clearCompleted = () => {
-    const { todos } = this.state
-
-    // Optimistically remove todos from UI
-    const data = todos.reduce((acc, current) => {
-      if (current.data.completed) {
-        // save item being removed for rollback
-        acc.completedTodoIds = acc.completedTodoIds.concat(getTodoId(current))
-        return acc
-      }
-      // filter deleted todo out of the todos list
-      acc.optimisticState = acc.optimisticState.concat(current)
-      return acc
-    }, {
-      completedTodoIds: [],
-      optimisticState: []
-    })
-
-    // only set state if completed todos exist
-    if (!data.completedTodoIds.length) {
-      alert('Please check off some todos to batch remove them')
-      this.closeModal()
-      return false
-    }
-
-    this.setState({
-      todos: data.optimisticState
-    }, () => {
-      setTimeout(() => {
-        this.closeModal()
-      }, 600)
-
-      api.batchDelete(data.completedTodoIds).then(() => {
-        console.log(`Batch removal complete`, data.completedTodoIds)
-        analytics.track('todosBatchDeleted', {
-          category: 'todos',
-        })
-      }).catch((e) => {
-        console.log('An API error occurred', e)
-      })
-    })
   }
   closeModal = (e) => {
     this.setState({
@@ -247,10 +185,10 @@ export default class App extends Component {
       category: 'modal'
     })
   }
-  renderTodos() {
-    const { todos } = this.state
+  renderProducts() {
+    const { products } = this.state
 
-    if (!todos || !todos.length) {
+    if (!products || !products.length) {
       // Loading State here
       return null
     }
@@ -258,46 +196,36 @@ export default class App extends Component {
     const timeStampKey = 'ts'
     const orderBy = 'desc' // or `asc`
     const sortOrder = sortByDate(timeStampKey, orderBy)
-    const todosByDate = todos.sort(sortOrder)
+    const productsByDate = products.sort(sortOrder)
 
-    return todosByDate.map((todo, i) => {
-      const { data, ref } = todo
-      const id = getTodoId(todo)
+    return productsByDate.map((product, i) => {
+      const { data, ref } = product
+      const id = getProductId(product)
       // only show delete button after create API response returns
       let deleteButton
       if (ref) {
         deleteButton = (
-          <button data-id={id} onClick={this.deleteTodo}>
+          <button data-id={id} onClick={this.deleteProduct}>
             delete
           </button>
         )
       }
-      const boxIcon = (data.completed) ? '#todo__box__done' : '#todo__box'
+
       return (
-        <div key={i} className='todo-item'>
-          <label className="todo">
-            <input
-              data-id={id}
-              className="todo__state"
-              type="checkbox"
-              onChange={this.handleTodoCheckbox}
-              checked={data.completed}
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 25" className="todo__icon">
-              <use xlinkHref={`${boxIcon}`} className="todo__box"></use>
-              <use xlinkHref="#todo__check" className="todo__check"></use>
-            </svg>
-            <div className='todo-list-title'>
+        <div key={i} className='product-item'>
+          <label className="product">
+            <img className="product-image" src={data.image} />
+            <div className='product-list-title'>
               <ContentEditable
                 tagName='span'
                 editKey={id}
-                onBlur={this.updateTodoTitle} // save on enter/blur
+                onBlur={this.updateProductTitle} // save on enter/blur
                 html={data.title}
                 // onChange={this.handleDataChange} // save on change
               />
             </div>
           </label>
-          {deleteButton}
+          {this.state.isAdmin && deleteButton}
         </div>
       )
     })
@@ -308,29 +236,67 @@ export default class App extends Component {
 
         <AppHeader />
 
-        <div className='todo-list'>
-          <h2>
-            Create todo
-            <SettingsIcon onClick={this.openModal} className='mobile-toggle' />
-          </h2>
-          <form className='todo-create-wrapper' onSubmit={this.saveTodo}>
-            <input
-              className='todo-create-input'
-              placeholder='Add a todo item'
-              name='name'
-              ref={el => this.inputElement = el}
-              autoComplete='off'
-              style={{marginRight: 20}}
-            />
-            <div className='todo-actions'>
-              <button className='todo-create-button'>
-                Create todo
-              </button>
-              <SettingsIcon onClick={this.openModal}  className='desktop-toggle' />
-            </div>
+        <div className='intro'>
+          <p>
+            Greetings from Grandmother Elspeth & Nybor Odbert! We are doing this fundraiser to raise money for our inspirational
+            education festival called GreenSong 2020!
+          </p>
+
+          <p>
+            It has been through the inspiration of a beloved friendship with Pete Seeger, an American folk singer & social
+            activist, that the vision of GreenSong was born. GreenSong 2020 will focus on the ongoing challenges to our home,
+            the planet Earth, and to our ability to survive, even thrive, as we face them. We will have meaningful music,
+            active workshops, and experienced speakers to bring these matters to the fore. These will serve to develop your
+            sense of personal responsibility for the ethical use of resources and for compassion for all beings. You will meet
+            like minded people and build new connections for shared experiences. Here you will find inspiration to become a
+            Change Maker and move toward a more sustainable future.
+          </p>
+
+          <p>
+            As some of you may know, my husband Nybor's work is well-known across the country. It has been seen at Renaissance
+            fairs, science fiction conventions and art shows; as well as on the covers of books and magazines. He was named
+            &quot;Artist of the Year&quot; by the WPPA for four years in the early 1990s. One of his paintings, titled
+            &quot;Kiss of Ages,&quot; was awarded &quot;Best in Show/Judges' Choice&quot; at the World Science Fiction
+            Convention in 2002. His fantasy portraits hang in many homes overseas as well as in the United States.
+          </p>
+
+          <p>
+            With that said, Nybor is putting up some very special pieces of his work, some prints, some actual original pieces,
+            to raffle off in an effort to raise the funds needed for the operating expenses of GreenSong. Please help us by
+            purchasing tickets and potentially obtaining a collector's piece, signed by the artist to display in your home. 
+          </p>
+        </div>
+
+        <div className='product-list'>
+          <form className='product-create-wrapper' onSubmit={this.saveProduct}>
+          { this.state.isAdmin &&
+            <>
+              <input
+                className='product-create-input'
+                placeholder='Add a product item'
+                name='name'
+                ref={el => this.productName = el}
+                autoComplete='off'
+                style={{marginRight: 20}}
+              />
+              <input
+                className='product-create-input'
+                placeholder='Add image URL'
+                name='image'
+                ref={el => this.productImage = el}
+                autoComplete='off'
+                style={{marginRight: 20}}
+              />
+              <div className='product-actions'>
+                <button className='product-create-button'>
+                  Create product
+                </button>
+              </div>
+            </>
+          }
           </form>
 
-          {this.renderTodos()}
+          {this.renderProducts()}
         </div>
         <SettingsMenu
           showMenu={this.state.showMenu}
@@ -342,16 +308,16 @@ export default class App extends Component {
   }
 }
 
-function removeOptimisticTodo(todos) {
-  // return all 'real' todos
-  return todos.filter((todo) => {
-    return todo.ref
+function removeOptimisticProduct(products) {
+  // return all 'real' products
+  return products.filter((product) => {
+    return product.ref
   })
 }
 
-function getTodoId(todo) {
-  if (!todo.ref) {
+function getProductId(product) {
+  if (!product.ref) {
     return null
   }
-  return todo.ref['@ref'].id
+  return product.ref['@ref'].id
 }

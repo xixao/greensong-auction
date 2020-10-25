@@ -1,7 +1,7 @@
 /* Api methods to call /functions */
 
 const create = (data) => {
-  return fetch('/.netlify/functions/todos-create', {
+  return fetch('/.netlify/functions/products-create', {
     body: JSON.stringify(data),
     method: 'POST'
   }).then(response => {
@@ -10,13 +10,13 @@ const create = (data) => {
 }
 
 const readAll = () => {
-  return fetch('/.netlify/functions/todos-read-all').then((response) => {
+  return fetch('/.netlify/functions/products-read-all').then((response) => {
     return response.json()
   })
 }
 
-const update = (todoId, data) => {
-  return fetch(`/.netlify/functions/todos-update/${todoId}`, {
+const update = (productId, data) => {
+  return fetch(`/.netlify/functions/products-update/${productId}`, {
     body: JSON.stringify(data),
     method: 'POST'
   }).then(response => {
@@ -24,18 +24,18 @@ const update = (todoId, data) => {
   })
 }
 
-const deleteTodo = (todoId) => {
-  return fetch(`/.netlify/functions/todos-delete/${todoId}`, {
+const deleteProduct = (productId) => {
+  return fetch(`/.netlify/functions/products-delete/${productId}`, {
     method: 'POST',
   }).then(response => {
     return response.json()
   })
 }
 
-const batchDeleteTodo = (todoIds) => {
-  return fetch(`/.netlify/functions/todos-delete-batch`, {
+const batchDeleteProduct = (productIds) => {
+  return fetch(`/.netlify/functions/products-delete-batch`, {
     body: JSON.stringify({
-      ids: todoIds
+      ids: productIds
     }),
     method: 'POST'
   }).then(response => {
@@ -47,6 +47,6 @@ export default {
   create: create,
   readAll: readAll,
   update: update,
-  delete: deleteTodo,
-  batchDelete: batchDeleteTodo
+  delete: deleteProduct,
+  batchDelete: batchDeleteProduct
 }
