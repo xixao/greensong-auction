@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import ContentEditable from './components/ContentEditable'
 import AppHeader from './components/AppHeader'
 import SettingsMenu from './components/SettingsMenu'
-import SettingsIcon from './components/SettingsIcon'
 import analytics from './utils/analytics'
 import api from './utils/api'
 import sortByDate from './utils/sortByDate'
@@ -38,7 +37,7 @@ export default class App extends Component {
     })
 
     const urlParam = window.location.search
-    if (urlParam.substring(1) === "doAdmin") this.state.isAdmin = true
+    if (urlParam.substring(1) === "doAdmin") this.setState({ isAdmin: true })
   }
   saveProduct = (e) => {
     e.preventDefault()
@@ -214,7 +213,7 @@ export default class App extends Component {
       return (
         <div key={i} className='product-item'>
           <label className="product">
-            <img className="product-image" src={data.image} />
+            <img className="product-image" src={data.image} alt={data.title} />
             <div className='product-list-title'>
               <ContentEditable
                 tagName='span'
