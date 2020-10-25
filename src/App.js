@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import ContentEditable from './components/ContentEditable'
+// import ContentEditable from './components/ContentEditable'
 import AppHeader from './components/AppHeader'
 import SettingsMenu from './components/SettingsMenu'
 import analytics from './utils/analytics'
