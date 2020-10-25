@@ -12,7 +12,8 @@ export default class App extends Component {
   state = {
     products: [],
     showMenu: false,
-    isAdmin: false
+    isAdmin: false,
+    bidEntry: '',
   }
   componentDidMount() {
 
@@ -44,6 +45,7 @@ export default class App extends Component {
     const { products } = this.state
     const productValue = this.productName.value
     const productImage = this.productImage.value
+    const productMinBid = this.productMinimumBid.value
 
     if (!productValue) {
       alert('Please add Product title')
@@ -53,15 +55,22 @@ export default class App extends Component {
       alert('Please add Product image')
       this.productImage.focus()
       return false
+    } else if (!productMinBid) {
+      alert('Please add Minimum Bid amount')
+      this.productMinimumBid.focus()
+      return false
     }
 
     // reset input to empty
     this.productName.value = ''
     this.productImage.value = ''
+    this.productMinimumBid.value = ''
+    this.setState({ bidEntry: '' })
 
     const productInfo = {
       title: productValue,
       image: productImage,
+      minimum: productMinBid,
     }
     // Optimistically add product to UI
     const newProductArray = [{
@@ -82,6 +91,7 @@ export default class App extends Component {
         category: 'products',
         label: productValue,
         image: productImage,
+        minimum: productMinBid,
       })
       // remove temporaryValue from state and persist API response
       const persistedState = removeOptimisticProduct(products).concat(response)
@@ -168,6 +178,47 @@ export default class App extends Component {
       })
     }
   }
+  updateProductBid = (event, currentValue) => {
+    let isDifferent = false
+    const productId = event.target.dataset.key
+
+    const updatedProducts = this.state.products.map((product, i) => {
+      const id = getProductId(product)
+      if (id === productId && product.data.bid !== currentValue) {
+        product.data.bid = currentValue
+        isDifferent = true
+      }
+      return product
+    })
+
+    // only set state if input different
+    if (isDifferent) {
+      this.setState({
+        products: updatedProducts
+      }, () => {
+        api.update(productId, {
+          title: currentValue
+        }).then(() => {
+          console.log(`update product ${productId}`, currentValue)
+          analytics.track('productUpdated', {
+            category: 'products',
+            product: productId,
+            minimum: currentValue
+          })
+        }).catch((e) => {
+          console.log('An API error occurred', e)
+        })
+      })
+    }
+  }
+  onChangeNumeric = (e) => {
+    const re = /^[0-9\b]+$/;
+
+    // if value is not blank, then test the regex
+    if (e.target.value === '' || re.test(e.target.value)) {
+      this.setState({ bidEntry: e.target.value })
+    }
+  }
   closeModal = (e) => {
     this.setState({
       showMenu: false
@@ -211,16 +262,24 @@ export default class App extends Component {
       }
 
       let productTitle
+      let productBid
+
       if (this.state.isAdmin) {
         productTitle = (<ContentEditable
                 tagName='span'
                 editKey={id}
-                onBlur={this.updateProductTitle} // save on enter/blur
+                onBlur={this.updateProductTitle}
                 html={data.title}
-                // onChange={this.handleDataChange} // save on change
+              />)
+         productBid = (<ContentEditable
+                tagName='span'
+                editKey={id}
+                onBlur={this.updateProductBid}
+                html={data.minimum}
               />)
       } else {
         productTitle = data.title
+        productBid = data.bid
       }
 
       return (
@@ -229,6 +288,9 @@ export default class App extends Component {
             <img className="product-image" src={data.image} alt={data.title} />
             <div className='product-list-title'>
               {productTitle}
+            </div>
+            <div className='product-list-title'>
+              {productBid}
             </div>
           </label>
           {this.state.isAdmin && deleteButton}
@@ -292,6 +354,16 @@ export default class App extends Component {
                 ref={el => this.productImage = el}
                 autoComplete='off'
                 style={{marginRight: 20}}
+              />
+              <input
+                className='product-create-input product-input-small'
+                placeholder='Minimum bid'
+                name='minBid'
+                ref={el => this.productMinimumBid = el}
+                autoComplete='off'
+                style={{marginRight: 20}}
+                value={this.state.bidEntry}
+                onChange={this.onChangeNumeric}
               />
               <div className='product-actions'>
                 <button className='product-create-button'>

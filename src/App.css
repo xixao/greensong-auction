@@ -30,6 +30,10 @@
   outline: none;
   transition: all 0.3s ease;
 }
+.product-input-small {
+  min-width: auto;
+  width: 10%;
+}
 .product-create-input:hover, .product-create-input:active, .product-create-input:focus {
   box-shadow: 0px 0px 0px 2px rgb(43, 190, 185);
   box-shadow: 0px 0px 0px 2px #00ad9f;
@@ -100,13 +104,17 @@
     align-items: flex-start;
     margin-bottom: 15px;
   }
-  .product-create-input {
+  .product-create-input, .product-input-small {
     appearance: none;
     border: 1px solid rgba(120, 130, 152, 0.25);
     /* Disable Auto Zoom in Input “Text” tag - Safari on iPhone */
     font-size: 16px;
     margin-bottom: 15px;
     min-width: 85%;
+  }
+  .product-input-small {
+    min-width: auto;
+    width: 10%;
   }
   .product-item button {
     padding: 4px 12px;
