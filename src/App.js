@@ -291,7 +291,7 @@ export default class App extends Component {
               {productTitle}
             </div>
             <div className='product-list-title'>
-              {productBid}
+              Starting bid: {productBid}
             </div>
           </label>
           {this.state.isAdmin && deleteButton}
