@@ -45,6 +45,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 43px;
+  flex-grow: 1;
 }
 .product-list-title {
   font-size: 17px;
@@ -150,6 +151,12 @@
   min-width: 40px;
   /*cursor: pointer;*/
   padding-right: 5px;
+}
+.image-container {
+  width: 10%;
+}
+.image-container {
+  text-align: center;
 }
 .product-image {
   max-height: 60px;

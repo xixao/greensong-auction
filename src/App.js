@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 // import ContentEditable from './components/ContentEditable'
 import AppHeader from './components/AppHeader'
-import SettingsMenu from './components/SettingsMenu'
+import BidModal from './components/BidModal'
 import analytics from './utils/analytics'
 import api from './utils/api'
 import sortByDate from './utils/sortByDate'
@@ -14,6 +14,7 @@ export default class App extends Component {
     showMenu: false,
     isAdmin: false,
     bidEntry: '',
+    selectedProduct: '',
   }
   componentDidMount() {
 
@@ -221,15 +222,19 @@ export default class App extends Component {
   }
   closeModal = (e) => {
     this.setState({
-      showMenu: false
+      showMenu: false,
+      selectedProduct: {},
     })
     analytics.track('modalClosed', {
       category: 'modal'
     })
   }
-  openModal = () => {
+  openModal = (e) => {
+    const { products } = this.state
+    const productId = e.target.dataset.id
     this.setState({
-      showMenu: true
+      showMenu: true,
+      selectedProduct: productId,
     })
     analytics.track('modalOpened', {
       category: 'modal'
@@ -251,18 +256,25 @@ export default class App extends Component {
     return productsByDate.map((product, i) => {
       const { data, ref } = product
       const id = getProductId(product)
+      const productName = getProductName(product)
       // only show delete button after create API response returns
       let deleteButton
+      let bidButton
       if (ref) {
         deleteButton = (
           <button data-id={id} onClick={this.deleteProduct}>
             delete
           </button>
         )
+        bidButton = (
+          <button data-id={id} onClick={this.openModal}>
+            bid on item
+          </button>
+        )
       }
 
-      let productTitle
-      let productBid
+      // let productTitle
+      // let productBid
 
       // if (this.state.isAdmin) {
       //   productTitle = (<ContentEditable
@@ -279,22 +291,24 @@ export default class App extends Component {
       //           onChange={this.onChangeNumeric}
       //         />)
       // } else {
-        productTitle = data.title
-        productBid = '$' + data.minimum
+      //  productTitle = data.title
+      //  productBid = '$' + data.minimum
       // }
-
+      
       return (
-        <div key={i} className='product-item'>
-          <label className="product">
-            <img className="product-image" src={data.image} alt={data.title} />
-            <div className='product-list-title'>
-              {productTitle}
-            </div>
-            <div className='product-list-title'>
-              Starting bid: {productBid}
-            </div>
-          </label>
-          {this.state.isAdmin && deleteButton}
+        <div className='product-grid'>
+          <div key={i} className="product-item">
+            <label className="product">
+              <div className="image-container">
+                <img className="product-image" src={data.image} alt={data.title} />
+              </div>
+              <div className='product-list-title'>
+                {data.title}<br />
+                Starting bid: $ {data.minimum}
+              </div>
+            </label>
+            {this.state.isAdmin ? deleteButton : bidButton}
+          </div>
         </div>
       )
     })
@@ -377,10 +391,12 @@ export default class App extends Component {
 
           {this.renderProducts()}
         </div>
-        <SettingsMenu
+        <BidModal
           showMenu={this.state.showMenu}
           handleModalClose={this.closeModal}
           handleClearCompleted={this.clearCompleted}
+          products={this.state.products}
+          selectedProduct={this.state.selectedProduct}
         />
       </div>
     )
@@ -399,4 +415,11 @@ function getProductId(product) {
     return null
   }
   return product.ref['@ref'].id
+}
+
+function getProductName(product) {
+  if (!product.ref) {
+    return null
+  }
+  return product.ref['@ref'].title
 }

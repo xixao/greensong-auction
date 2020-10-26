@@ -45,3 +45,14 @@ button:focus, button:hover {
     border-color: #fa3b49;
     color: #fff;
 }
+
+.btn-primary {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: #fff;
+}
+.btn-primary:focus, .btn-primary:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    color: #fff;
+}

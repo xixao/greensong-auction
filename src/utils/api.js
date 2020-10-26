@@ -43,10 +43,20 @@ const batchDeleteProduct = (productIds) => {
   })
 }
 
+const bid = (bidderInfo) => {
+  return fetch('/.netlify/functions/bid-create', {
+    body: JSON.stringify(bidderInfo),
+    method: 'POST'
+  }).then(response => {
+    return response.json()
+  })
+}
+
 export default {
   create: create,
   readAll: readAll,
   update: update,
   delete: deleteProduct,
-  batchDelete: batchDeleteProduct
+  batchDelete: batchDeleteProduct,
+  bid: bid
 }
