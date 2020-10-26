@@ -417,10 +417,3 @@ function getProductId(product) {
   }
   return product.ref['@ref'].id
 }
-
-function getProductName(product) {
-  if (!product.ref) {
-    return null
-  }
-  return product.ref['@ref'].title
-}
