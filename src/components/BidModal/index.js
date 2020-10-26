@@ -85,7 +85,7 @@ export default class Menu extends Component {
 
     console.log(products, selectedProduct)
 
-    const currentItem = products.filter(product => product.ref['@ref'].id === selectedProduct)[0]
+    const currentItem = products.filter(product => product.ref && product.ref['@ref'].id === selectedProduct)[0]
     console.log(currentItem)
 
     if (showMenu === true && selectedProduct) {

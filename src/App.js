@@ -110,42 +110,45 @@ export default class App extends Component {
     })
   }
   deleteProduct = (e) => {
-    const { products } = this.state
-    const productId = e.target.dataset.id
+    const confirmBid = window.confirm("Are you sure you want to delete this product?")
+    if (confirmBid) {
+      const { products } = this.state
+      const productId = e.target.dataset.id
 
-    // Optimistically remove product from UI
-    const filteredProducts = products.reduce((acc, current) => {
-      const currentId = getProductId(current)
-      if (currentId === productId) {
-        // save item being removed for rollback
-        acc.rollbackProduct = current
+      // Optimistically remove product from UI
+      const filteredProducts = products.reduce((acc, current) => {
+        const currentId = getProductId(current)
+        if (currentId === productId) {
+          // save item being removed for rollback
+          acc.rollbackProduct = current
+          return acc
+        }
+        // filter deleted product out of the products list
+        acc.optimisticState = acc.optimisticState.concat(current)
         return acc
-      }
-      // filter deleted product out of the products list
-      acc.optimisticState = acc.optimisticState.concat(current)
-      return acc
-    }, {
-      rollbackProduct: {},
-      optimisticState: []
-    })
-
-    this.setState({
-      products: filteredProducts.optimisticState
-    })
-
-    // Make API request to delete product
-    api.delete(productId).then(() => {
-      console.log(`deleted product id ${productId}`)
-      analytics.track('productDeleted', {
-        category: 'products',
+      }, {
+        rollbackProduct: {},
+        optimisticState: []
       })
-    }).catch((e) => {
-      console.log(`There was an error removing ${productId}`, e)
-      // Add item removed back to list
+
       this.setState({
-        products: filteredProducts.optimisticState.concat(filteredProducts.rollbackProduct)
+        products: filteredProducts.optimisticState
       })
-    })
+
+      // Make API request to delete product
+      api.delete(productId).then(() => {
+        console.log(`deleted product id ${productId}`)
+        analytics.track('productDeleted', {
+          category: 'products',
+        })
+      }).catch((e) => {
+        console.log(`There was an error removing ${productId}`, e)
+        // Add item removed back to list
+        this.setState({
+          products: filteredProducts.optimisticState.concat(filteredProducts.rollbackProduct)
+        })
+      })
+    }
   }
   updateProductTitle = (event, currentValue) => {
     let isDifferent = false
