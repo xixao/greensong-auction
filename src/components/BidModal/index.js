@@ -59,6 +59,7 @@ export default class Menu extends Component {
         email: bidderEmail,
         phone: bidderPhone,
         bid: bidderAmount,
+        item: this.props.selectedProduct,
       }
 
       // Make API request to create new product
@@ -71,6 +72,7 @@ export default class Menu extends Component {
           email: bidderEmail,
           phone: bidderPhone,
           bid: bidderAmount,
+          item: this.props.selectedProduct,
         })
         this.props.handleModalClose()
       }).catch((e) => {
