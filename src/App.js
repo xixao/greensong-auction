@@ -233,7 +233,6 @@ export default class App extends Component {
     })
   }
   openModal = (e) => {
-    const { products } = this.state
     const productId = e.target.dataset.id
     this.setState({
       showMenu: true,
@@ -259,7 +258,6 @@ export default class App extends Component {
     return productsByDate.map((product, i) => {
       const { data, ref } = product
       const id = getProductId(product)
-      const productName = getProductName(product)
       // only show delete button after create API response returns
       let deleteButton
       let bidButton
