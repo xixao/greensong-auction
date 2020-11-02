@@ -75,21 +75,21 @@ export default class Menu extends Component {
       }
 
       // Make API request to create new product
-      // api.bid(bidderInfo).then((response) => {
-      //   console.log(response)
-      //   /* Track a custom event */
-      //   analytics.track('bidCreated', {
-      //     category: 'bids',
-      //     name: bidderName,
-      //     email: bidderEmail,
-      //     phone: bidderPhone,
-      //     bid: bidderAmount,
-      //     item: this.props.selectedProduct,
-      //   })
-      //   this.props.handleModalClose()
-      // }).catch((e) => {
-      //   console.log('An API error occurred', e)
-      // })
+      api.bid(bidderInfo).then((response) => {
+        console.log(response)
+        /* Track a custom event */
+        analytics.track('bidCreated', {
+          category: 'bids',
+          name: bidderName,
+          email: bidderEmail,
+          phone: bidderPhone,
+          bid: bidderAmount,
+          item: this.props.selectedProduct,
+        })
+        this.props.handleModalClose()
+      }).catch((e) => {
+        console.log('An API error occurred', e)
+      })
     }
   }
 
