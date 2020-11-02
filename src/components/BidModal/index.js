@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import styles from './BidModal.css' // eslint-disable-line
 import analytics from '../../utils/analytics'
 import api from '../../utils/api'
+import InputMask from 'react-input-mask'
+import CurrencyInput from 'react-currency-masked-input'
 
 export default class Menu extends Component {
   componentDidMount() {
@@ -26,6 +28,10 @@ export default class Menu extends Component {
     }
   }
   handleBid = (e) => {
+    const { products, selectedProduct } = this.props
+    const minBid = products.filter(product => product.ref && product.ref['@ref'].id === selectedProduct)[0].data.minimum
+    console.log(minBid)
+
     e.preventDefault()
     const confirmBid = window.confirm("Submit your bid on this item?")
     if (confirmBid) {
@@ -36,21 +42,27 @@ export default class Menu extends Component {
       const bidderPhone = this.bidderPhone.value
       const bidderAmount = this.bidderAmount.value
 
+      const unformattedPhone = bidderPhone.replace(/\D/g, '')
+
+      const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
       if (!bidderName) {
         alert('Please enter your name')
         this.bidderName.focus()
         return false
-      } else if (!bidderEmail) {
-        alert('Please enter your email address')
+      } else if (!bidderEmail || !emailRegex.test(String(bidderEmail).toLowerCase())) {
+        alert('Please enter a valid address')
         this.bidderEmail.focus()
         return false
-      } else if (!bidderPhone) {
-        alert('Please enter your phone number')
+      } else if (!bidderPhone || unformattedPhone.length < 10) {
+        alert('Please enter your 10-digit phone number')
         this.bidderPhone.focus()
         return false
       } else if (!bidderAmount) {
         alert('Please enter your bid amount')
-        this.bidderAmount.focus()
+        return false
+      } else if (bidderAmount < minBid) {
+        alert('Bid must be greater than minimum bid amount')
         return false
       }
 
@@ -63,21 +75,21 @@ export default class Menu extends Component {
       }
 
       // Make API request to create new product
-      api.bid(bidderInfo).then((response) => {
-        console.log(response)
-        /* Track a custom event */
-        analytics.track('bidCreated', {
-          category: 'bids',
-          name: bidderName,
-          email: bidderEmail,
-          phone: bidderPhone,
-          bid: bidderAmount,
-          item: this.props.selectedProduct,
-        })
-        this.props.handleModalClose()
-      }).catch((e) => {
-        console.log('An API error occurred', e)
-      })
+      // api.bid(bidderInfo).then((response) => {
+      //   console.log(response)
+      //   /* Track a custom event */
+      //   analytics.track('bidCreated', {
+      //     category: 'bids',
+      //     name: bidderName,
+      //     email: bidderEmail,
+      //     phone: bidderPhone,
+      //     bid: bidderAmount,
+      //     item: this.props.selectedProduct,
+      //   })
+      //   this.props.handleModalClose()
+      // }).catch((e) => {
+      //   console.log('An API error occurred', e)
+      // })
     }
   }
 
@@ -119,22 +131,27 @@ export default class Menu extends Component {
                   autoComplete='off'
                   style={{marginRight: 20}}
                 />
-                <input
+                <InputMask mask="(999) 999-9999" maskChar=" ">
+                  {(inputProps) => (
+                    <input
+                      {...inputProps}
+                      className='product-create-input'
+                      placeholder='Phone Number'
+                      name='bidder-phone'
+                      ref={el => this.bidderPhone = el}
+                      autoComplete='off'
+                      style={{marginRight: 20}}
+                    />
+                  )}
+                </InputMask>
+                <CurrencyInput
                   className='product-create-input'
-                  placeholder='Phone Number'
-                  name='bidder-phone'
-                  ref={el => this.bidderPhone = el}
-                  autoComplete='off'
-                  style={{marginRight: 20}}
-                />
-                <input
-                  className='product-create-input'
-                  placeholder='Bid Amount'
-                  name='bidder-amount'
                   ref={el => this.bidderAmount = el}
-                  autoComplete='off'
                   style={{marginRight: 20}}
+                  name='bidder-amount'
+                  placeholder='Bid Amount'
                 />
+                <p>(Minimum bid: ${currentItem.data.minimum})</p>
                 <div className='settings-section' onClick={this.handleBid}>
                   <button className='btn-primary'>
                     Submit Bid
