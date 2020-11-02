@@ -44,8 +44,7 @@ export default class Menu extends Component {
 
       const unformattedPhone = bidderPhone.replace(/\D/g, '')
 
-      /*eslint no-useless-escape: "error"*/
-      const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const emailRegex = /^(([^<>()[]\.,;:\s@"]+(\.[^<>()[].,;:\s@"]+)*)|(".+"))@(([[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
       if (!bidderName) {
         alert('Please enter your name')
