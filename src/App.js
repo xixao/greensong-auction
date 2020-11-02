@@ -346,8 +346,13 @@ export default class App extends Component {
 
           <p>
             With that said, Nybor is putting up some very special pieces of his work, some prints, some actual original pieces,
-            to raffle off in an effort to raise the funds needed for the operating expenses of GreenSong. Please help us by
-            purchasing tickets and potentially obtaining a collector's piece, signed by the artist to display in your home. 
+            to raffle off in an effort to raise the funds needed for the operating expenses of GreenSong. Please help GreenSong by
+            potentially obtaining a collector's piece, signed by the artist to display in your home. 
+          </p>
+
+          <p>
+            Click on the &quot;bid on item&quot; button on the right side for a larger image and description, and to place
+            your bid.
           </p>
         </div>
 
