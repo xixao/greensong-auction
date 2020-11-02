@@ -51,7 +51,7 @@ export default class Menu extends Component {
         this.bidderName.focus()
         return false
       } else if (!bidderEmail || !emailRegex.test(String(bidderEmail).toLowerCase())) {
-        alert('Please enter a valid address')
+        alert('Please enter a valid email address')
         this.bidderEmail.focus()
         return false
       } else if (!bidderPhone || unformattedPhone.length < 10) {
