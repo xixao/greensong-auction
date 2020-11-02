@@ -44,7 +44,7 @@ export default class Menu extends Component {
 
       const unformattedPhone = bidderPhone.replace(/\D/g, '')
 
-      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/;
+      const emailRegex = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
 
       if (!bidderName) {
         alert('Please enter your name')
