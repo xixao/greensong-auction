@@ -110,7 +110,7 @@ export default class Menu extends Component {
               ❌
             </span>
             <h2>{currentItem.data.title}</h2>
-            <p>{currentItem.data.description}</p>
+            <p className='description'>{currentItem.data.description}</p>
             <div className="modal-flex">
               <div className="modal-image">
                 <img src={currentItem.data.image} alt={currentItem.data.title} />
